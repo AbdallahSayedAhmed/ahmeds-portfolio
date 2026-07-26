@@ -1,5 +1,8 @@
 import './styles.css';
 
+// Every project below maps to a real .glb in /assets/models/3d.
+// `fast` = safe to auto-preload in the background. Every model still loads
+// directly on click; this only controls quiet preloading for nearby rows.
 const projects = [
   {
     id: 'stand',
@@ -8,8 +11,9 @@ const projects = [
     type: 'Retail Display',
     model: '/models/3d/stand.glb',
     image: '/images/thumbnails/display-stand-primary.webp',
-    sizeMb: 0.6,
+    sizeMb: 0.1,
     fast: true,
+    rotationY: 0,
   },
   {
     id: 'gate',
@@ -18,8 +22,9 @@ const projects = [
     type: 'Exhibition Gateway',
     model: '/models/3d/Gate.glb',
     image: '/images/thumbnails/exhibition-gate.webp',
-    sizeMb: 0.7,
+    sizeMb: 0.1,
     fast: true,
+    rotationY: 0,
   },
   {
     id: 'dd',
@@ -28,8 +33,9 @@ const projects = [
     type: 'Product Counter',
     model: '/models/3d/dd.glb',
     image: '/images/thumbnails/display-unit-dd.webp',
-    sizeMb: 2.3,
+    sizeMb: 0.3,
     fast: true,
+    rotationY: 0,
   },
   {
     id: 'trophy',
@@ -38,51 +44,191 @@ const projects = [
     type: 'Award Display',
     model: '/models/3d/trophy.glb',
     image: '/images/thumbnails/brand-trophy.webp',
-    sizeMb: 3,
+    sizeMb: 0.2,
     fast: true,
+    rotationY: 0,
+  },
+  {
+    id: 'was17',
+    index: '05',
+    title: 'WAS Series Booth 17',
+    type: '3D Booth System',
+    model: '/models/3d/was17.glb',
+    image: '/images/thumbnails/was-series-17.webp',
+    sizeMb: 1.8,
+    fast: true,
+    rotationY: 0,
+  },
+  {
+    id: 'was15',
+    index: '06',
+    title: 'WAS Series Booth 15',
+    type: '3D Booth System',
+    model: '/models/3d/was15.glb',
+    image: '/images/thumbnails/was-series-15.webp',
+    sizeMb: 0.2,
+    fast: true,
+    rotationY: 0,
   },
   {
     id: 'podium',
-    index: '05',
+    index: '07',
     title: 'Customer Interaction Podium',
     type: 'Brand Activation',
     model: '/models/3d/Poduom.glb',
     image: '/images/thumbnails/brand-podium.webp',
-    sizeMb: 7.5,
+    sizeMb: 0.3,
     fast: true,
-  },
-  {
-    id: 'was17',
-    index: '06',
-    title: 'WAS Series Exhibition Booth',
-    type: '3D Booth System',
-    model: '/models/3d/was17.glb',
-    image: '/images/thumbnails/was-series-17.webp',
-    sizeMb: 5.8,
-    fast: true,
+    rotationY: 0,
   },
   {
     id: 'bank',
-    index: '07',
+    index: '08',
     title: 'Housing Bank Exhibition Stand',
     type: 'Large Booth Build',
     model: '/models/3d/bank.glb',
     image: '/images/thumbnails/housing-bank-booth.webp',
-    sizeMb: 25,
+    sizeMb: 6.2,
     fast: false,
+    rotationY: 0,
+  },
+  {
+    id: 'booth',
+    index: '09',
+    title: 'Exhibition Counter Unit',
+    type: 'Product Counter',
+    model: '/models/3d/Booth.glb',
+    image: '/images/thumbnails/housing-bank-counter.webp',
+    sizeMb: 1,
+    fast: false,
+    rotationY: 0,
+  },
+  {
+    id: 'stande',
+    index: '10',
+    title: 'Extended Display Stand',
+    type: 'Retail Display',
+    model: '/models/3d/stande.glb',
+    image: '/images/thumbnails/display-stand-extended.webp',
+    sizeMb: 0.3,
+    fast: false,
+    rotationY: 0,
+  },
+  {
+    id: 'booth11',
+    index: '11',
+    title: 'Exhibition Booth 11',
+    type: '3D Booth System',
+    model: '/models/3d/Booth11.glb',
+    image: '/images/thumbnails/exhibition-booth-11.webp',
+    sizeMb: 3.6,
+    fast: false,
+    rotationY: 0,
+  },
+  {
+    id: 'was16',
+    index: '12',
+    title: 'WAS Series Booth 16',
+    type: '3D Booth System',
+    model: '/models/3d/was16.glb',
+    image: '/images/thumbnails/was-series-16.webp',
+    sizeMb: 2.7,
+    fast: false,
+    rotationY: 0,
+  },
+  {
+    id: 'was14',
+    index: '13',
+    title: 'WAS Series Booth 14',
+    type: '3D Booth System',
+    model: '/models/3d/was14.glb',
+    image: '/images/thumbnails/was-series-14.webp',
+    sizeMb: 4.5,
+    fast: false,
+    rotationY: 0,
+  },
+  {
+    id: 'registration',
+    index: '14',
+    title: 'Registration Gate Stand',
+    type: 'Entry Gateway',
+    model: '/models/3d/Registration.glb',
+    image: '/images/thumbnails/registration-gate.webp',
+    sizeMb: 4,
+    fast: false,
+    rotationY: 0,
+  },
+  {
+    id: 'booth12',
+    index: '15',
+    title: 'Exhibition Booth 12',
+    type: '3D Booth System',
+    model: '/models/3d/Booth12.glb',
+    image: '/images/thumbnails/exhibition-booth-12.webp',
+    sizeMb: 4.3,
+    fast: false,
+    rotationY: 0,
+  },
+  {
+    id: 'booth14',
+    index: '16',
+    title: 'Exhibition Booth 14',
+    type: '3D Booth System',
+    model: '/models/3d/Booth14.glb',
+    image: '/images/thumbnails/exhibition-booth-14.webp',
+    sizeMb: 4.9,
+    fast: false,
+    rotationY: 0,
+  },
+  {
+    id: 'booth13',
+    index: '17',
+    title: 'Exhibition Booth 13',
+    type: '3D Booth System',
+    model: '/models/3d/Booth13.glb',
+    image: '/images/thumbnails/exhibition-booth-13.webp',
+    sizeMb: 8.1,
+    fast: false,
+    rotationY: 0,
+  },
+  {
+    id: 'bank2',
+    index: '18',
+    title: 'Housing Bank Booth V2',
+    type: 'Large Booth Build',
+    model: '/models/3d/Bank2.glb',
+    image: '/images/thumbnails/bank-booth-v2.webp',
+    sizeMb: 6.8,
+    fast: false,
+    rotationY: 0,
+  },
+  {
+    id: 'concept3',
+    index: '19',
+    title: 'Exhibition Concept 03',
+    type: 'Concept Design',
+    model: '/models/3d/3.glb',
+    image: '/images/thumbnails/exhibition-concept-3.webp',
+    sizeMb: 9.6,
+    fast: false,
+    rotationY: 0,
   },
   {
     id: 'floor',
-    index: '08',
+    index: '20',
     title: 'Full Floor Plan Layout',
     type: 'Large Venue Plan',
     model: '/models/3d/plan-1.glb',
     image: '/images/thumbnails/floor-plan-layout.webp',
-    sizeMb: 290,
+    sizeMb: 24.6,
     fast: false,
+    rotationY: 0,
   },
 ];
 
+// Small, already-optimized webp thumbnails only -- never raw /images/3d/*.png
+// (those source renders run 5-60MB each and previously loaded straight into
+// the collage, which was the main cause of slow image loading on the site).
 const collageImages = [
   '/images/thumbnails/housing-bank-booth.webp',
   '/images/thumbnails/exhibition-booth-14.webp',
@@ -91,15 +237,19 @@ const collageImages = [
   '/images/on-ground/IMG20250325042304.webp',
   '/images/on-ground/IMG20240523152015.webp',
   '/images/on-ground/IMG20250928155518.webp',
-  '/images/3d/Booth14.png',
-  '/images/3d/Gate.png',
+  '/images/thumbnails/exhibition-booth-11.webp',
+  '/images/thumbnails/exhibition-gate.webp',
 ];
+
+const PAGE_SIZE = 8;
+const TOTAL_PAGES = Math.ceil(projects.length / PAGE_SIZE);
+let currentPage = 0;
 
 const app = document.querySelector('#app');
 
 app.innerHTML = `
   <header class="site-header" aria-label="Primary navigation">
-    <a class="brand" href="#top" aria-label="Ahmed Basha Mahmoud home">ABM</a>
+    <a class="brand" href="#top" aria-label="Ahmed Basha home">ABM</a>
     <nav>
       <a href="#work">Work</a>
       <a href="#process">Process</a>
@@ -111,7 +261,7 @@ app.innerHTML = `
     <section class="hero section-shell" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="eyebrow">Senior Graphic Designer & 3D Designer</p>
-        <h1 id="hero-title">Ahmed Basha Mahmoud</h1>
+        <h1 id="hero-title">Ahmed Basha</h1>
         <p class="hero-punch">Not your average designer.</p>
         <p class="morph-line">Built for <span id="morphWord">3D Artist</span></p>
       </div>
@@ -125,24 +275,17 @@ app.innerHTML = `
 
     <section id="work" class="showcase section-shell" aria-labelledby="work-title">
       <div class="section-intro">
-        <p class="eyebrow">Interactive 3D Work</p>
-        <h2 id="work-title">Hover the titles. Rotate and zoom the model.</h2>
+        <p class="eyebrow">Interactive 3D Work &middot; ${projects.length} Models</p>
+        <h2 id="work-title">Click a title. Rotate and zoom the model.</h2>
       </div>
-      <div class="showcase-grid">
-        <div class="project-list" role="list">
-          ${projects
-            .map(
-              (project, i) => `
-                <button class="project-row ${i === 0 ? 'is-active' : ''}" data-project="${project.id}" role="listitem">
-                  <span class="project-index">${project.index}</span>
-                  <span class="project-main">
-                    <strong>${project.title}</strong>
-                    <small>${project.type} / ${project.sizeMb}MB ${project.fast ? 'fast GLB' : 'manual HD load'}</small>
-                  </span>
-                </button>
-              `,
-            )
-            .join('')}
+      <div class="showcase-grid" id="showcaseGrid">
+        <div class="project-list-wrap">
+          <div class="project-list" id="projectList" role="list"></div>
+          <div class="pagination" aria-label="Project pages">
+            <button class="page-arrow" id="prevPage" type="button" aria-label="Previous page">&larr;</button>
+            <span class="page-label" id="pageLabel"></span>
+            <button class="page-arrow" id="nextPage" type="button" aria-label="Next page">&rarr;</button>
+          </div>
         </div>
 
         <aside class="viewer-panel" aria-label="Interactive 3D model viewer">
@@ -218,6 +361,11 @@ setInterval(() => {
   morphWord.textContent = morphWords[morphIndex];
 }, 1600);
 
+const showcaseGrid = document.querySelector('#showcaseGrid');
+const projectListEl = document.querySelector('#projectList');
+const prevPageBtn = document.querySelector('#prevPage');
+const nextPageBtn = document.querySelector('#nextPage');
+const pageLabel = document.querySelector('#pageLabel');
 const activeTitle = document.querySelector('#activeTitle');
 const modelPoster = document.querySelector('#modelPoster');
 const loaderState = document.querySelector('#loaderState');
@@ -238,17 +386,67 @@ async function getViewer() {
 
 const viewerReady = getViewer();
 
-document.querySelectorAll('.project-row').forEach((button) => {
-  const activate = () => {
-    const project = projects.find((item) => item.id === button.dataset.project);
-    if (!project || viewer?.activeProject.id === project.id) return;
-    document.querySelectorAll('.project-row').forEach((row) => row.classList.toggle('is-active', row === button));
+function renderProjectRow(project) {
+  const activeId = showcaseGrid.classList.contains('is-open') && viewer ? viewer.activeProject.id : null;
+  return `
+    <button class="project-row ${project.id === activeId ? 'is-active' : ''}" data-project="${project.id}" role="listitem">
+      <span class="project-index">${project.index}</span>
+      <span class="project-main">
+        <strong>${project.title}</strong>
+        <small>${project.type} / ${project.sizeMb}MB optimized GLB</small>
+      </span>
+    </button>
+  `;
+}
+
+function renderPage(page) {
+  currentPage = Math.min(Math.max(page, 0), TOTAL_PAGES - 1);
+  const start = currentPage * PAGE_SIZE;
+  const pageItems = projects.slice(start, start + PAGE_SIZE);
+
+  projectListEl.innerHTML = pageItems.map(renderProjectRow).join('');
+  pageLabel.textContent = `Page ${currentPage + 1} of ${TOTAL_PAGES}`;
+  prevPageBtn.disabled = currentPage === 0;
+  nextPageBtn.disabled = currentPage === TOTAL_PAGES - 1;
+
+  // Only warm the cache for models that are actually visible on this page.
+  viewerReady.then((instance) => instance.setPreloadPool(pageItems));
+}
+
+function foldViewer() {
+  showcaseGrid.classList.remove('is-open');
+  projectListEl.querySelectorAll('.project-row').forEach((row) => row.classList.remove('is-active'));
+}
+
+function activateRow(row) {
+  if (!row) return;
+  const project = projects.find((item) => item.id === row.dataset.project);
+  if (!project) return;
+
+  projectListEl.querySelectorAll('.project-row').forEach((r) => r.classList.toggle('is-active', r === row));
+  showcaseGrid.classList.add('is-open');
+
+  if (!viewer || viewer.activeProject.id !== project.id) {
     getViewer().then((instance) => instance.loadProject(project));
-  };
-  button.addEventListener('pointerenter', activate, { passive: true });
-  button.addEventListener('focus', activate);
-  button.addEventListener('click', activate);
+  }
+}
+
+projectListEl.addEventListener('click', (event) => activateRow(event.target.closest('.project-row')));
+
+document.addEventListener('click', (event) => {
+  if (!showcaseGrid.classList.contains('is-open')) return;
+  if (event.target.closest('.project-row') || event.target.closest('.viewer-panel')) return;
+  foldViewer();
 });
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') foldViewer();
+});
+
+prevPageBtn.addEventListener('click', () => renderPage(currentPage - 1));
+nextPageBtn.addEventListener('click', () => renderPage(currentPage + 1));
+
+renderPage(0);
 
 loadHdButton.addEventListener('click', () => {
   const project = projects.find((item) => item.id === loadHdButton.dataset.project);

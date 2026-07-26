@@ -100,11 +100,16 @@ nav a:focus-visible {
 .hero {
   display: grid;
   align-content: space-between;
+  justify-items: center;
+  text-align: center;
   background: #ffffff;
 }
 
 .hero-copy {
-  padding-top: clamp(48px, 8vw, 96px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: clamp(40px, 6vw, 76px);
 }
 
 h1,
@@ -115,33 +120,36 @@ p {
 }
 
 h1 {
-  max-width: 13ch;
-  margin-bottom: 18px;
-  font-size: clamp(64px, 14vw, 196px);
+  max-width: 15ch;
+  margin-inline: auto;
+  margin-bottom: 16px;
+  font-size: clamp(48px, 9vw, 132px);
   font-weight: 950;
-  line-height: 0.83;
+  line-height: 0.88;
   letter-spacing: 0;
   text-transform: uppercase;
 }
 
 .hero-punch {
-  max-width: 18ch;
-  margin-bottom: 22px;
-  font-size: clamp(28px, 6vw, 86px);
+  max-width: 20ch;
+  margin-inline: auto;
+  margin-bottom: 20px;
+  font-size: clamp(22px, 4.5vw, 60px);
   font-weight: 950;
-  line-height: 0.92;
+  line-height: 0.95;
   text-transform: uppercase;
 }
 
 .morph-line {
   display: inline-flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 10px;
   align-items: baseline;
-  margin: 0;
+  margin: 0 auto;
   border: 2px solid #000000;
   padding: 10px 12px;
-  font-size: clamp(18px, 2.7vw, 38px);
+  font-size: clamp(16px, 2.2vw, 30px);
   font-weight: 900;
   line-height: 1;
 }
@@ -157,15 +165,16 @@ h1 {
 .hero-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
   border-block: 2px solid #000000;
 }
 
 .hero-strip span {
-  min-height: 96px;
+  min-height: 88px;
   display: grid;
   place-items: center;
   border-inline-end: 2px solid #000000;
-  font-size: clamp(15px, 2.5vw, 34px);
+  font-size: clamp(13px, 2vw, 26px);
   font-weight: 950;
   text-align: center;
   text-transform: uppercase;
@@ -198,18 +207,29 @@ h1 {
 
 .section-intro h2 {
   margin: 0;
-  font-size: clamp(38px, 7vw, 104px);
+  font-size: clamp(30px, 5vw, 72px);
   font-weight: 950;
-  line-height: 0.9;
+  line-height: 0.95;
   letter-spacing: 0;
   text-transform: uppercase;
 }
 
 .showcase-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 0.92fr) minmax(320px, 1.08fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(18px, 3vw, 34px);
   align-items: start;
+  transition: grid-template-columns 460ms cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+
+.showcase-grid.is-open {
+  grid-template-columns: minmax(280px, 0.92fr) minmax(320px, 1.08fr);
+}
+
+.project-list-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .project-list {
@@ -218,7 +238,7 @@ h1 {
 
 .project-row {
   width: 100%;
-  min-height: 92px;
+  min-height: 88px;
   display: grid;
   grid-template-columns: 54px 1fr;
   gap: 16px;
@@ -227,7 +247,7 @@ h1 {
   border-block-end: 1px solid rgba(255, 255, 255, 0.24);
   background: transparent;
   color: #ffffff;
-  padding: 18px 0;
+  padding: 16px 0;
   text-align: left;
   cursor: pointer;
   transition:
@@ -246,40 +266,106 @@ h1 {
 }
 
 .project-index {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 950;
 }
 
 .project-main {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
+  text-align: center;
+  transition: text-align 200ms ease;
+}
+
+.showcase-grid.is-open .project-main {
+  text-align: left;
 }
 
 .project-main strong {
-  font-size: clamp(22px, 3vw, 44px);
+  font-size: clamp(18px, 2.4vw, 34px);
   font-weight: 950;
-  line-height: 0.95;
+  line-height: 1;
   text-transform: uppercase;
 }
 
 .project-main small {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   line-height: 1.2;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.page-arrow {
+  min-width: 44px;
+  min-height: 44px;
+  border: 2px solid #ffffff;
+  background: transparent;
+  color: #ffffff;
+  font-weight: 950;
+  font-size: 16px;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    opacity 160ms ease;
+}
+
+.page-arrow:hover:not(:disabled),
+.page-arrow:focus-visible:not(:disabled) {
+  background: #ffffff;
+  color: #000000;
+  outline: 0;
+}
+
+.page-arrow:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+}
+
+.page-label {
+  min-width: 11ch;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
 .viewer-panel {
   position: sticky;
   top: 84px;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+  pointer-events: none;
   border: 2px solid #ffffff;
   background: #f7f7f4;
   color: #000000;
+  transition:
+    max-height 460ms cubic-bezier(0.22, 0.8, 0.2, 1),
+    opacity 320ms ease,
+    transform 420ms ease;
+}
+
+.showcase-grid.is-open .viewer-panel {
+  max-height: 1200px;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
 }
 
 .viewer-meta {
-  min-height: 88px;
+  min-height: 80px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -290,7 +376,7 @@ h1 {
 
 .viewer-meta h3 {
   margin: 0;
-  font-size: clamp(20px, 2vw, 30px);
+  font-size: clamp(16px, 1.6vw, 24px);
   font-weight: 950;
   line-height: 1;
   text-transform: uppercase;
@@ -302,6 +388,7 @@ h1 {
   background: #000000;
   color: #ffffff;
   padding: 10px 12px;
+  font-size: 13px;
   font-weight: 950;
   text-transform: uppercase;
   cursor: pointer;
@@ -315,8 +402,8 @@ h1 {
 
 .canvas-wrap {
   position: relative;
-  height: min(62vh, 620px);
-  min-height: 390px;
+  height: min(58vh, 560px);
+  min-height: 360px;
   overflow: hidden;
 }
 
@@ -350,7 +437,7 @@ h1 {
   border: 2px solid #000000;
   background: #ffffff;
   padding: 8px 10px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 950;
   text-transform: uppercase;
   transition: opacity 220ms ease;
@@ -368,11 +455,11 @@ h1 {
 }
 
 .viewer-controls span {
-  min-height: 44px;
+  min-height: 42px;
   display: grid;
   place-items: center;
   border-inline-end: 2px solid #000000;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 950;
   text-transform: uppercase;
   text-align: center;
@@ -499,14 +586,14 @@ h1 {
 }
 
 .drop-card span {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 950;
 }
 
 .drop-card strong {
-  font-size: clamp(24px, 3.2vw, 48px);
+  font-size: clamp(20px, 2.6vw, 38px);
   font-weight: 950;
-  line-height: 0.9;
+  line-height: 0.95;
   text-transform: uppercase;
 }
 
@@ -520,7 +607,6 @@ h1 {
   }
 
   .hero-strip,
-  .showcase-grid,
   .card-stage {
     grid-template-columns: 1fr;
   }
@@ -534,14 +620,30 @@ h1 {
     border-block-end: 0;
   }
 
+  /* On smaller screens the project list and viewer stack, while the same
+     click-to-open / outside-click-to-fold behavior stays intact. */
+  .showcase-grid,
+  .showcase-grid.is-open {
+    grid-template-columns: 1fr;
+  }
+
   .viewer-panel {
     position: relative;
     top: 0;
   }
 
+  .showcase-grid.is-open .viewer-panel {
+    overflow: visible;
+  }
+
+  .project-main,
+  .showcase-grid.is-open .project-main {
+    text-align: left;
+  }
+
   .canvas-wrap {
-    height: 58vh;
-    min-height: 330px;
+    height: 54vh;
+    min-height: 320px;
   }
 
   .collage-grid {
@@ -570,12 +672,12 @@ h1 {
   }
 
   h1 {
-    font-size: clamp(54px, 18vw, 84px);
+    font-size: clamp(44px, 16vw, 72px);
   }
 
   .project-row {
-    grid-template-columns: 38px 1fr;
-    min-height: 86px;
+    grid-template-columns: 34px 1fr;
+    min-height: 80px;
   }
 
   .viewer-meta,
