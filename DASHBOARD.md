@@ -1,8 +1,13 @@
-# Portfolio Dashboard
+# Offline Dashboard + Vercel Deploy
 
-Use the local dashboard to manage the portfolio without editing code.
+This project is now organized for a simple and reliable workflow:
 
-## Start
+- The public portfolio is deployed to Vercel as a static Vite site.
+- The dashboard runs only on your computer at `127.0.0.1`.
+- The dashboard optimizes images and `.glb` models locally, then updates the project files.
+- After editing, commit/push the changed files and Vercel redeploys the website.
+
+## Run The Local Dashboard
 
 ```bash
 npm run dashboard
@@ -14,101 +19,77 @@ Open:
 http://127.0.0.1:4174/dashboard
 ```
 
-## Login
+The dashboard is local-only. It does not need login, Gmail, SMTP, or online passwords because it is not deployed publicly.
 
-Copy `.env.example` to `.env` for local use, or set the same values in your hosting provider dashboard.
+## Run The Website Locally
 
-Generate strong private values:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
-```
-
-Set a strong dashboard password and a fixed session secret before publishing online:
-
-```bash
-DASHBOARD_PASSWORD=your-strong-private-password
-DASHBOARD_SECRET=your-random-32-byte-secret
-```
-
-On Windows PowerShell:
-
-```powershell
-$env:DASHBOARD_PASSWORD="your-strong-password"
-$env:DASHBOARD_SECRET="your-random-32-byte-secret"
-npm run dashboard
-```
-
-There is no frontend password and no production fallback password. Password login only works when `DASHBOARD_PASSWORD` is set on the server.
-
-When `NODE_ENV=production` or `DASHBOARD_PUBLIC=true`, the dashboard refuses to start unless the required secure environment variables are present.
-
-## Forgot Password Email
-
-The dashboard can send a one-time login code to the owner email:
-
-```text
-ahmedbashamahmoud175@gmail.com
-```
-
-Set these server environment variables before deploying:
-
-```bash
-DASHBOARD_RESET_EMAIL=ahmedbashamahmoud175@gmail.com
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your-gmail-address@gmail.com
-SMTP_PASS=your-gmail-app-password
-SMTP_FROM=your-gmail-address@gmail.com
-```
-
-Use a Gmail App Password for `SMTP_PASS`; do not use your normal Gmail password.
-
-## Security Controls
-
-- Sessions use signed `HttpOnly` cookies, so JavaScript cannot read them.
-- Production mode enables `Secure` cookies for HTTPS.
-- Login, forgot-password, and reset-code endpoints have in-memory rate limiting.
-- Configure these limits if needed:
-
-```bash
-AUTH_RATE_LIMIT_WINDOW_MS=900000
-AUTH_LOGIN_MAX_ATTEMPTS=8
-AUTH_RECOVERY_MAX_ATTEMPTS=5
-AUTH_CODE_MAX_ATTEMPTS=8
-```
-
-## What You Can Do
-
-- Add a 3D project with a visible title, category, thumbnail image, and `.glb` model.
-- Automatically optimize uploaded `.glb` files with Draco geometry compression and WebP texture compression.
-- Automatically resize oversized model textures before optimization when needed.
-- Bulk upload gallery images and convert them to optimized `.webp`.
-- Preview existing model thumbnails, gallery images, and 3D models.
-- Rename project titles and categories.
-- Replace an existing model file or thumbnail image.
-- Reorder models and gallery images with drag-and-drop.
-- Archive or restore models and gallery images without permanently deleting them.
-- See success/error status and final optimized file size after uploads.
-
-## Website Limits
-
-- The 3D work list still shows 8 project titles per page.
-- The gallery shows 9 images per page.
-- 3D pagination scrolls back to the first visible model title.
-- Gallery pagination scrolls back to the first visible image.
-
-## After Changes
-
-Run the website:
+In another terminal:
 
 ```bash
 npm run dev
 ```
 
-Build production files:
+Open:
 
-```bash
-npm run build
+```text
+http://127.0.0.1:5173/
 ```
+
+## What The Dashboard Does
+
+- Adds 3D projects with title, category, thumbnail, and `.glb` model.
+- Compresses uploaded `.glb` models locally.
+- Resizes oversized textures before model compression.
+- Converts uploaded gallery images to optimized `.webp`.
+- Supports bulk gallery image upload.
+- Lets you preview, rename, reorder, archive, restore, and replace files.
+
+## Deploy To Vercel
+
+Vercel should deploy the public website only:
+
+```text
+Framework Preset: Vite
+Build Command: npm run build
+Output Directory: dist
+```
+
+The included `vercel.json` already sets the build command and output directory.
+
+## Upload / Commit These
+
+Commit and push these when they change:
+
+```text
+assets/
+src/
+scripts/
+index.html
+package.json
+package-lock.json
+vite.config.js
+vercel.json
+DASHBOARD.md
+```
+
+## Do Not Upload These
+
+These are ignored and should stay local:
+
+```text
+node_modules/
+dist/
+originals-backup/
+.dashboard-uploads/
+.env
+*.log
+```
+
+## Recommended Workflow
+
+1. Run `npm run dashboard`.
+2. Add/edit models and images from the dashboard.
+3. Run `npm run build`.
+4. Check the site locally with `npm run preview`.
+5. Commit and push to GitHub.
+6. Vercel automatically deploys the updated public site.

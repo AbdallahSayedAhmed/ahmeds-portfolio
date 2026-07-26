@@ -1,6 +1,7 @@
 node_modules/
 dist/
 originals-backup/
+.dashboard-uploads/
 *.log
 .env
 .DS_Store

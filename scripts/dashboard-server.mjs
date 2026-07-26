@@ -4,34 +4,12 @@ import fsSync from 'node:fs';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import Busboy from 'busboy';
 import sharp from 'sharp';
-import nodemailer from 'nodemailer';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
-
-function loadLocalEnv() {
-  const envPath = path.join(projectRoot, '.env');
-  if (!fsSync.existsSync(envPath)) return;
-  const lines = fsSync.readFileSync(envPath, 'utf8').split(/\r?\n/);
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const equalsIndex = trimmed.indexOf('=');
-    if (equalsIndex < 1) continue;
-    const key = trimmed.slice(0, equalsIndex).trim();
-    let value = trimmed.slice(equalsIndex + 1).trim();
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
-      value = value.slice(1, -1);
-    }
-    process.env[key] ??= value;
-  }
-}
-
-loadLocalEnv();
-
 const assetsDir = path.join(projectRoot, 'assets');
 const nodeModulesDir = path.join(projectRoot, 'node_modules');
 const contentPath = path.join(projectRoot, 'src', 'content.json');
@@ -43,25 +21,8 @@ const modelBackupDir = path.join(projectRoot, 'originals-backup', 'dashboard-mod
 const imageBackupDir = path.join(projectRoot, 'originals-backup', 'dashboard-image-uploads');
 const gltfCliPath = path.join(projectRoot, 'node_modules', '@gltf-transform', 'cli', 'bin', 'cli.js');
 const fixTexturesScript = path.join(projectRoot, 'scripts', 'fix-oversized-textures.cjs');
-const host = process.env.HOST || '127.0.0.1';
+const host = '127.0.0.1';
 const port = Number(process.env.PORT || 4174);
-const isProduction = process.env.NODE_ENV === 'production' || process.env.DASHBOARD_PUBLIC === 'true';
-const trustProxy = process.env.TRUST_PROXY === 'true';
-const secureCookie = isProduction || process.env.DASHBOARD_SECURE_COOKIE === 'true';
-const dashboardPassword = process.env.DASHBOARD_PASSWORD || '';
-const passwordLoginEnabled = Boolean(dashboardPassword);
-const dashboardSecret = process.env.DASHBOARD_SECRET || `dashboard:${dashboardPassword || randomUUID()}`;
-const authCookieName = 'abm_dashboard_auth';
-const sessionMaxAgeSeconds = 60 * 60 * 24 * 30;
-const dashboardResetEmail = (process.env.DASHBOARD_RESET_EMAIL || 'ahmedbashamahmoud175@gmail.com').toLowerCase();
-const resetCodeTtlMs = 10 * 60 * 1000;
-const resetCodeMaxAttempts = 5;
-const authRateLimitWindowMs = Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000);
-const authLoginMaxAttempts = Number(process.env.AUTH_LOGIN_MAX_ATTEMPTS || 8);
-const authRecoveryMaxAttempts = Number(process.env.AUTH_RECOVERY_MAX_ATTEMPTS || 5);
-const authCodeMaxAttempts = Number(process.env.AUTH_CODE_MAX_ATTEMPTS || 8);
-const rateLimitStore = new Map();
-let resetCodeState = null;
 
 const mimeTypes = {
   '.css': 'text/css; charset=utf-8',
@@ -88,113 +49,6 @@ function sendJson(res, status, payload) {
 function sendHtml(res, html, status = 200, headers = {}) {
   res.writeHead(status, { 'content-type': 'text/html; charset=utf-8', ...headers });
   res.end(html);
-}
-
-function sendRedirect(res, location) {
-  res.writeHead(302, { location });
-  res.end();
-}
-
-function parseCookies(req) {
-  return Object.fromEntries(
-    String(req.headers.cookie || '')
-      .split(';')
-      .map((part) => part.trim())
-      .filter(Boolean)
-      .map((part) => {
-        const index = part.indexOf('=');
-        if (index < 0) return [part, ''];
-        return [part.slice(0, index), decodeURIComponent(part.slice(index + 1))];
-      }),
-  );
-}
-
-function getClientIp(req) {
-  if (trustProxy && req.headers['x-forwarded-for']) {
-    return String(req.headers['x-forwarded-for']).split(',')[0].trim();
-  }
-  return req.socket.remoteAddress || 'unknown';
-}
-
-function rateLimitKey(req, scope) {
-  return `${scope}:${getClientIp(req)}`;
-}
-
-function checkRateLimit(key, maxAttempts, windowMs = authRateLimitWindowMs) {
-  const now = Date.now();
-  const existing = rateLimitStore.get(key);
-  if (!existing || existing.resetAt <= now) {
-    rateLimitStore.set(key, { attempts: 1, resetAt: now + windowMs });
-    return { allowed: true, retryAfterSeconds: 0 };
-  }
-  existing.attempts += 1;
-  if (existing.attempts <= maxAttempts) {
-    return { allowed: true, retryAfterSeconds: 0 };
-  }
-  return {
-    allowed: false,
-    retryAfterSeconds: Math.max(1, Math.ceil((existing.resetAt - now) / 1000)),
-  };
-}
-
-function clearRateLimit(key) {
-  rateLimitStore.delete(key);
-}
-
-function sendRateLimited(res, html, retryAfterSeconds) {
-  sendHtml(res, html, 429, {
-    'retry-after': String(retryAfterSeconds),
-    'cache-control': 'no-store',
-  });
-}
-
-function signToken(value) {
-  return createHmac('sha256', dashboardSecret).update(value).digest('hex');
-}
-
-function createSessionToken() {
-  const value = Buffer.from(
-    JSON.stringify({
-      id: randomUUID(),
-      createdAt: Date.now(),
-    }),
-  ).toString('base64url');
-  return `${value}.${signToken(value)}`;
-}
-
-function isValidSession(req) {
-  const token = parseCookies(req)[authCookieName];
-  if (!token) return false;
-  const [value, signature] = token.split('.');
-  if (!value || !signature) return false;
-  const expected = signToken(value);
-  const givenBuffer = Buffer.from(signature);
-  const expectedBuffer = Buffer.from(expected);
-  if (givenBuffer.length !== expectedBuffer.length || !timingSafeEqual(givenBuffer, expectedBuffer)) return false;
-  try {
-    const session = JSON.parse(Buffer.from(value, 'base64url').toString('utf8'));
-    return Date.now() - Number(session.createdAt) < sessionMaxAgeSeconds * 1000;
-  } catch {
-    return false;
-  }
-}
-
-function setAuthCookie(res) {
-  const secureAttribute = secureCookie ? '; Secure' : '';
-  res.writeHead(302, {
-    location: '/dashboard',
-    'set-cookie': `${authCookieName}=${encodeURIComponent(createSessionToken())}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${sessionMaxAgeSeconds}${secureAttribute}`,
-  });
-  res.end();
-}
-
-function clearAuthCookie(res) {
-  const secureAttribute = secureCookie ? '; Secure' : '';
-  res.writeHead(302, {
-    location: '/login',
-    'set-cookie': `${authCookieName}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secureAttribute}`,
-  });
-  res.end();
 }
 
 function formatMb(bytes) {
@@ -367,116 +221,6 @@ function parseJson(req) {
     });
     req.on('error', reject);
   });
-}
-
-async function parseForm(req) {
-  const body = await new Promise((resolve, reject) => {
-    let value = '';
-    req.on('data', (chunk) => {
-      value += chunk;
-      if (value.length > 64 * 1024) {
-        req.destroy();
-        reject(new Error('Form request is too large.'));
-      }
-    });
-    req.on('end', () => resolve(value));
-    req.on('error', reject);
-  });
-  return Object.fromEntries(new URLSearchParams(body));
-}
-
-function safeEqualText(a, b) {
-  const first = Buffer.from(String(a || ''));
-  const second = Buffer.from(String(b || ''));
-  return first.length === second.length && timingSafeEqual(first, second);
-}
-
-function createResetCode() {
-  return String(Math.floor(100000 + Math.random() * 900000));
-}
-
-function resetCodeHash(code) {
-  return createHmac('sha256', dashboardSecret).update(`reset-code:${code}`).digest('hex');
-}
-
-function smtpTransportConfig() {
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
-  return {
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: String(process.env.SMTP_SECURE || '').toLowerCase() === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  };
-}
-
-function assertProductionSecurity() {
-  if (!isProduction) {
-    if (!process.env.DASHBOARD_SECRET) {
-      console.warn('Dashboard security warning: set DASHBOARD_SECRET before publishing online.');
-    }
-    if (!passwordLoginEnabled) {
-      console.warn('Dashboard security warning: set DASHBOARD_PASSWORD to enable password login.');
-    }
-    return;
-  }
-
-  const missing = [];
-  for (const key of ['DASHBOARD_PASSWORD', 'DASHBOARD_SECRET', 'DASHBOARD_RESET_EMAIL', 'SMTP_HOST', 'SMTP_USER', 'SMTP_PASS']) {
-    if (!process.env[key]) missing.push(key);
-  }
-  if (missing.length) {
-    throw new Error(`Refusing to start public dashboard. Missing secure environment variables: ${missing.join(', ')}`);
-  }
-  if (dashboardPassword.length < 16) {
-    throw new Error('Refusing to start public dashboard. DASHBOARD_PASSWORD must be at least 16 characters.');
-  }
-  if (dashboardSecret.length < 32) {
-    throw new Error('Refusing to start public dashboard. DASHBOARD_SECRET must be at least 32 characters.');
-  }
-}
-
-async function sendResetEmail(code) {
-  const config = smtpTransportConfig();
-  if (!config) {
-    console.warn(`Dashboard reset code for ${dashboardResetEmail}: ${code}`);
-    return false;
-  }
-  const transporter = nodemailer.createTransport(config);
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM || process.env.SMTP_USER,
-    to: dashboardResetEmail,
-    subject: 'Ahmed Portfolio Dashboard Login Code',
-    text: `Your dashboard login code is ${code}. It expires in 10 minutes.`,
-    html: `<p>Your dashboard login code is:</p><h1 style="letter-spacing:4px">${code}</h1><p>This code expires in 10 minutes.</p>`,
-  });
-  return true;
-}
-
-async function createAndSendResetCode() {
-  const code = createResetCode();
-  resetCodeState = {
-    hash: resetCodeHash(code),
-    expiresAt: Date.now() + resetCodeTtlMs,
-    attempts: 0,
-  };
-  return sendResetEmail(code);
-}
-
-function isValidResetCode(code) {
-  if (!resetCodeState) return false;
-  resetCodeState.attempts += 1;
-  if (resetCodeState.attempts > resetCodeMaxAttempts || Date.now() > resetCodeState.expiresAt) {
-    resetCodeState = null;
-    return false;
-  }
-  const expected = Buffer.from(resetCodeState.hash);
-  const given = Buffer.from(resetCodeHash(code));
-  const ok = given.length === expected.length && timingSafeEqual(given, expected);
-  if (ok) resetCodeState = null;
-  return ok;
 }
 
 function parseMultipart(req) {
@@ -973,118 +717,6 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-function loginHtml(error = '') {
-  return `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dashboard Login</title>
-    <style>
-      :root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0f172a; color: #fff; }
-      * { box-sizing: border-box; }
-      body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 20px; background: radial-gradient(circle at 20% 10%, #334155 0, #0f172a 44%, #020617 100%); }
-      .card { width: min(440px, 100%); padding: 28px; border: 1px solid rgba(255,255,255,.16); border-radius: 30px; background: rgba(255,255,255,.1); box-shadow: 0 30px 90px rgba(0,0,0,.38); backdrop-filter: blur(18px); }
-      h1 { margin: 0 0 10px; font-size: clamp(36px, 8vw, 68px); line-height: .84; letter-spacing: -.08em; text-transform: uppercase; }
-      p { color: #cbd5e1; line-height: 1.6; }
-      label { display: grid; gap: 8px; margin: 18px 0; color: #e2e8f0; font-size: 12px; font-weight: 900; text-transform: uppercase; }
-      input { width: 100%; border: 1px solid rgba(255,255,255,.22); border-radius: 16px; padding: 14px; background: rgba(255,255,255,.92); color: #0f172a; font: inherit; font-weight: 800; }
-      button { width: 100%; border: 0; border-radius: 999px; padding: 13px 16px; background: #fff; color: #0f172a; font: inherit; font-weight: 950; text-transform: uppercase; cursor: pointer; }
-      a { color: #fff; font-weight: 900; }
-      .warn, .error { margin-top: 14px; border-radius: 16px; padding: 12px; font-size: 13px; font-weight: 800; }
-      .warn { background: rgba(251,191,36,.18); color: #fde68a; }
-      .error { background: rgba(239,68,68,.2); color: #fecaca; }
-      code { color: #fff; }
-    </style>
-  </head>
-  <body>
-    <form class="card" method="post" action="/login">
-      <p>Protected CMS</p>
-      <h1>Dashboard Login</h1>
-      <p>Enter the dashboard password to manage 3D models, gallery images, ordering, and uploads.</p>
-      <label>Password <input name="password" type="password" autocomplete="current-password" ${passwordLoginEnabled ? 'required autofocus' : 'disabled placeholder="Set DASHBOARD_PASSWORD on the server"'} /></label>
-      <button type="submit">Sign In</button>
-      <p><a href="/forgot-password">Forgot password?</a></p>
-      ${error ? `<div class="error">${escapeHtml(error)}</div>` : ''}
-      <div class="warn">Security note: password login only works when <code>DASHBOARD_PASSWORD</code> is set on the server.</div>
-    </form>
-  </body>
-</html>`;
-}
-
-function forgotPasswordHtml(message = '', error = '') {
-  return `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Forgot Password</title>
-    <style>
-      :root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0f172a; color: #fff; }
-      * { box-sizing: border-box; }
-      body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 20px; background: radial-gradient(circle at 20% 10%, #334155 0, #0f172a 44%, #020617 100%); }
-      .card { width: min(460px, 100%); padding: 28px; border: 1px solid rgba(255,255,255,.16); border-radius: 30px; background: rgba(255,255,255,.1); box-shadow: 0 30px 90px rgba(0,0,0,.38); backdrop-filter: blur(18px); }
-      h1 { margin: 0 0 10px; font-size: clamp(34px, 8vw, 62px); line-height: .84; letter-spacing: -.08em; text-transform: uppercase; }
-      p { color: #cbd5e1; line-height: 1.6; }
-      label { display: grid; gap: 8px; margin: 18px 0; color: #e2e8f0; font-size: 12px; font-weight: 900; text-transform: uppercase; }
-      input { width: 100%; border: 1px solid rgba(255,255,255,.22); border-radius: 16px; padding: 14px; background: rgba(255,255,255,.92); color: #0f172a; font: inherit; font-weight: 800; }
-      button, .button { display: block; width: 100%; border: 0; border-radius: 999px; padding: 13px 16px; background: #fff; color: #0f172a; font: inherit; font-weight: 950; text-transform: uppercase; cursor: pointer; text-align: center; text-decoration: none; }
-      a { color: #fff; font-weight: 900; }
-      .message, .error { margin-top: 14px; border-radius: 16px; padding: 12px; font-size: 13px; font-weight: 800; }
-      .message { background: rgba(16,185,129,.18); color: #bbf7d0; }
-      .error { background: rgba(239,68,68,.2); color: #fecaca; }
-    </style>
-  </head>
-  <body>
-    <form class="card" method="post" action="/forgot-password">
-      <p>Account Recovery</p>
-      <h1>Forgot Password</h1>
-      <p>Enter the owner email. If it matches the dashboard owner, a one-time login code will be sent.</p>
-      <label>Email <input name="email" type="email" autocomplete="email" required autofocus /></label>
-      <button type="submit">Send Login Code</button>
-      <p><a href="/login">Back to login</a></p>
-      ${message ? `<div class="message">${escapeHtml(message)}</div><p><a class="button" href="/reset-code">Enter Code</a></p>` : ''}
-      ${error ? `<div class="error">${escapeHtml(error)}</div>` : ''}
-    </form>
-  </body>
-</html>`;
-}
-
-function resetCodeHtml(error = '') {
-  return `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Enter Login Code</title>
-    <style>
-      :root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0f172a; color: #fff; }
-      * { box-sizing: border-box; }
-      body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 20px; background: radial-gradient(circle at 20% 10%, #334155 0, #0f172a 44%, #020617 100%); }
-      .card { width: min(440px, 100%); padding: 28px; border: 1px solid rgba(255,255,255,.16); border-radius: 30px; background: rgba(255,255,255,.1); box-shadow: 0 30px 90px rgba(0,0,0,.38); backdrop-filter: blur(18px); }
-      h1 { margin: 0 0 10px; font-size: clamp(34px, 8vw, 62px); line-height: .84; letter-spacing: -.08em; text-transform: uppercase; }
-      p { color: #cbd5e1; line-height: 1.6; }
-      label { display: grid; gap: 8px; margin: 18px 0; color: #e2e8f0; font-size: 12px; font-weight: 900; text-transform: uppercase; }
-      input { width: 100%; border: 1px solid rgba(255,255,255,.22); border-radius: 16px; padding: 14px; background: rgba(255,255,255,.92); color: #0f172a; font: inherit; font-weight: 900; letter-spacing: .2em; text-align: center; }
-      button { width: 100%; border: 0; border-radius: 999px; padding: 13px 16px; background: #fff; color: #0f172a; font: inherit; font-weight: 950; text-transform: uppercase; cursor: pointer; }
-      a { color: #fff; font-weight: 900; }
-      .error { margin-top: 14px; border-radius: 16px; padding: 12px; font-size: 13px; font-weight: 800; background: rgba(239,68,68,.2); color: #fecaca; }
-    </style>
-  </head>
-  <body>
-    <form class="card" method="post" action="/reset-code">
-      <p>Secure Recovery</p>
-      <h1>Enter Code</h1>
-      <p>Use the 6-digit login code sent to the dashboard owner email. The code expires after 10 minutes.</p>
-      <label>Code <input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autofocus /></label>
-      <button type="submit">Verify Code</button>
-      <p><a href="/forgot-password">Send another code</a></p>
-      ${error ? `<div class="error">${escapeHtml(error)}</div>` : ''}
-    </form>
-  </body>
-</html>`;
-}
-
 function dashboardHtml() {
   return `<!doctype html>
 <html lang="en">
@@ -1223,7 +855,6 @@ function dashboardHtml() {
           <div class="button-row">
             <a class="btn ghost" href="http://127.0.0.1:5173/" target="_blank" rel="noreferrer" style="text-decoration:none">Open Site</a>
             <button class="btn secondary" id="syncGallery" type="button">Sync Gallery Folder</button>
-            <a class="btn ghost" href="/logout" style="text-decoration:none">Logout</a>
           </div>
         </div>
         <div class="panel stats">
@@ -1586,95 +1217,6 @@ async function route(req, res) {
 
     if (req.method === 'GET' && (await serveStatic(url, res))) return;
 
-    if (req.method === 'GET' && url.pathname === '/login') {
-      sendHtml(res, loginHtml(url.searchParams.get('error') || ''));
-      return;
-    }
-
-    if (req.method === 'POST' && url.pathname === '/login') {
-      const loginLimitKey = rateLimitKey(req, 'login');
-      const loginLimit = checkRateLimit(loginLimitKey, authLoginMaxAttempts);
-      if (!loginLimit.allowed) {
-        sendRateLimited(res, loginHtml(`Too many login attempts. Try again in ${loginLimit.retryAfterSeconds} seconds.`), loginLimit.retryAfterSeconds);
-        return;
-      }
-      const form = await parseForm(req);
-      if (passwordLoginEnabled && safeEqualText(form.password, dashboardPassword)) {
-        clearRateLimit(loginLimitKey);
-        setAuthCookie(res);
-      } else {
-        sendHtml(res, loginHtml('Incorrect password.'));
-      }
-      return;
-    }
-
-    if (req.method === 'GET' && url.pathname === '/forgot-password') {
-      sendHtml(res, forgotPasswordHtml());
-      return;
-    }
-
-    if (req.method === 'POST' && url.pathname === '/forgot-password') {
-      const recoveryLimitKey = rateLimitKey(req, 'forgot-password');
-      const recoveryLimit = checkRateLimit(recoveryLimitKey, authRecoveryMaxAttempts);
-      if (!recoveryLimit.allowed) {
-        sendRateLimited(
-          res,
-          forgotPasswordHtml('', `Too many recovery requests. Try again in ${recoveryLimit.retryAfterSeconds} seconds.`),
-          recoveryLimit.retryAfterSeconds,
-        );
-        return;
-      }
-      const form = await parseForm(req);
-      const email = String(form.email || '').trim().toLowerCase();
-      if (email && safeEqualText(email, dashboardResetEmail)) {
-        await createAndSendResetCode();
-      }
-      sendHtml(res, forgotPasswordHtml('If the email matches the dashboard owner, a login code has been sent.'));
-      return;
-    }
-
-    if (req.method === 'GET' && url.pathname === '/reset-code') {
-      sendHtml(res, resetCodeHtml());
-      return;
-    }
-
-    if (req.method === 'POST' && url.pathname === '/reset-code') {
-      const codeLimitKey = rateLimitKey(req, 'reset-code');
-      const codeLimit = checkRateLimit(codeLimitKey, authCodeMaxAttempts);
-      if (!codeLimit.allowed) {
-        sendRateLimited(res, resetCodeHtml(`Too many code attempts. Try again in ${codeLimit.retryAfterSeconds} seconds.`), codeLimit.retryAfterSeconds);
-        return;
-      }
-      const form = await parseForm(req);
-      if (isValidResetCode(String(form.code || '').trim())) {
-        clearRateLimit(codeLimitKey);
-        setAuthCookie(res);
-      } else {
-        sendHtml(res, resetCodeHtml('Invalid or expired code.'));
-      }
-      return;
-    }
-
-    if (req.method === 'GET' && url.pathname === '/logout') {
-      clearAuthCookie(res);
-      return;
-    }
-
-    const protectedPath =
-      url.pathname === '/' ||
-      url.pathname === '/dashboard' ||
-      url.pathname === '/preview/model' ||
-      url.pathname.startsWith('/api/');
-
-    if (protectedPath && !isValidSession(req)) {
-      if (url.pathname.startsWith('/api/')) {
-        sendJson(res, 401, { ok: false, error: 'Authentication required.' });
-      } else {
-        sendRedirect(res, '/login');
-      }
-      return;
-    }
-
     if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/dashboard')) {
       sendHtml(res, dashboardHtml());
       return;
@@ -1743,8 +1285,6 @@ async function route(req, res) {
     sendJson(res, 500, { ok: false, error: error.message, details: error.stderr || error.stdout || undefined });
   }
 }
-
-assertProductionSecurity();
 
 http.createServer(route).listen(port, host, () => {
   console.log(`Dashboard: http://${host}:${port}/dashboard`);

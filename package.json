@@ -12,7 +12,6 @@
     "optimize:images": "node scripts/optimize-images.mjs"
   },
   "dependencies": {
-    "nodemailer": "^9.0.3",
     "three": "^0.170.0"
   },
   "devDependencies": {
