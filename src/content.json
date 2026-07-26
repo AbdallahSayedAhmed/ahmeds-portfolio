@@ -1,23 +1,23 @@
 {
   "projects": [
     {
-      "id": "stand",
+      "id": "gate",
       "index": "01",
-      "title": "Compact Display Stand",
-      "type": "Retail Display",
-      "model": "/models/3d/stand.glb",
-      "image": "/images/thumbnails/display-stand-primary.webp",
+      "title": "Modern Exhibition Gate Stand",
+      "type": "Exhibition Gateway",
+      "model": "/models/3d/Gate.glb",
+      "image": "/images/thumbnails/exhibition-gate.webp",
       "sizeMb": 0.1,
       "fast": true,
       "rotationY": 0
     },
     {
-      "id": "gate",
+      "id": "stand",
       "index": "02",
-      "title": "Modern Exhibition Gate Stand",
-      "type": "Exhibition Gateway",
-      "model": "/models/3d/Gate.glb",
-      "image": "/images/thumbnails/exhibition-gate.webp",
+      "title": "Trophy HDB",
+      "type": "Retail Display",
+      "model": "/models/3d/stand.glb",
+      "image": "/images/thumbnails/display-stand-primary.webp",
       "sizeMb": 0.1,
       "fast": true,
       "rotationY": 0
@@ -222,7 +222,6 @@
     }
   ],
   "collageImages": [
-    "/images/on-ground/FF4.webp",
     "/images/on-ground/IMG-20230124-WA0028.webp",
     "/images/on-ground/IMG-20230124-WA0029.webp",
     "/images/on-ground/IMG-20230520-WA0001.webp",
@@ -311,6 +310,8 @@
     "/images/on-ground/WhatsApp Image 2024-02-05 at 12.55.21 PM (3).webp",
     "/images/on-ground/WhatsApp Image 2024-02-05 at 12.55.21 PM.webp",
     "/images/on-ground/WhatsApp Image 2024-02-05 at 12.55.22 PM (1).webp",
-    "/images/on-ground/WhatsApp Image 2024-02-05 at 12.55.22 PM.webp"
-  ]
+    "/images/on-ground/WhatsApp Image 2024-02-05 at 12.55.22 PM.webp",
+    "/images/on-ground/FF4.webp"
+  ],
+  "archivedCollageImages": []
 }

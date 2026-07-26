@@ -1,7 +1,8 @@
 import './styles.css';
 import content from './content.json';
 
-const { projects, collageImages } = content;
+const projects = content.projects.filter((project) => !project.archived);
+const collageImages = content.collageImages.filter((src) => !(content.archivedCollageImages || []).includes(src));
 
 const PAGE_SIZE = 8;
 const TOTAL_PAGES = Math.ceil(projects.length / PAGE_SIZE);
@@ -53,13 +54,20 @@ app.innerHTML = `
           </div>
         </div>
 
+        <button class="viewer-backdrop" id="viewerBackdrop" type="button" aria-label="Close fullscreen 3D view"></button>
         <aside class="viewer-panel" aria-label="Interactive 3D model viewer">
+          <button class="viewer-close" id="viewerClose" type="button" aria-label="Close fullscreen 3D view">
+            <span aria-hidden="true"></span>
+          </button>
           <div class="viewer-meta">
             <div>
               <p class="eyebrow">Live WebGL</p>
               <h3 id="activeTitle">${projects[0].title}</h3>
             </div>
-            <button id="loadHdButton" class="ghost-button" type="button" hidden>Load full 3D</button>
+            <div class="viewer-actions">
+              <button id="fullscreenButton" class="ghost-button" type="button">Fullscreen</button>
+              <button id="loadHdButton" class="ghost-button" type="button" hidden>Load full 3D</button>
+            </div>
           </div>
           <div class="canvas-wrap">
             <canvas id="modelCanvas" aria-label="3D portfolio model"></canvas>
@@ -130,6 +138,9 @@ const activeTitle = document.querySelector('#activeTitle');
 const modelPoster = document.querySelector('#modelPoster');
 const loaderState = document.querySelector('#loaderState');
 const loadHdButton = document.querySelector('#loadHdButton');
+const fullscreenButton = document.querySelector('#fullscreenButton');
+const viewerBackdrop = document.querySelector('#viewerBackdrop');
+const viewerClose = document.querySelector('#viewerClose');
 const processSection = document.querySelector('#process');
 const collageGrid = document.querySelector('#collageGrid');
 const prevCollagePageBtn = document.querySelector('#prevCollagePage');
@@ -165,7 +176,11 @@ function renderProjectRow(project) {
   `;
 }
 
-function renderPage(page) {
+function scrollToSectionPart(element) {
+  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderPage(page, shouldScroll = false) {
   currentPage = Math.min(Math.max(page, 0), TOTAL_PAGES - 1);
   const start = currentPage * PAGE_SIZE;
   const pageItems = projects.slice(start, start + PAGE_SIZE);
@@ -177,11 +192,37 @@ function renderPage(page) {
 
   // Only warm the cache for models that are actually visible on this page.
   viewerReady.then((instance) => instance.setPreloadPool(pageItems));
+
+  if (shouldScroll) {
+    scrollToSectionPart(projectListEl);
+  }
 }
 
 function foldViewer() {
+  closeFullscreenViewer();
   showcaseGrid.classList.remove('is-open');
   projectListEl.querySelectorAll('.project-row').forEach((row) => row.classList.remove('is-active'));
+}
+
+function refreshViewerSize() {
+  requestAnimationFrame(() => {
+    viewer?.resize();
+  });
+}
+
+function openFullscreenViewer() {
+  showcaseGrid.classList.add('is-viewer-fullscreen');
+  document.body.classList.add('is-viewer-fullscreen');
+  fullscreenButton.textContent = 'Exit fullscreen';
+  refreshViewerSize();
+}
+
+function closeFullscreenViewer() {
+  if (!showcaseGrid.classList.contains('is-viewer-fullscreen')) return;
+  showcaseGrid.classList.remove('is-viewer-fullscreen');
+  document.body.classList.remove('is-viewer-fullscreen');
+  fullscreenButton.textContent = 'Fullscreen';
+  refreshViewerSize();
 }
 
 function activateRow(row) {
@@ -206,17 +247,40 @@ document.addEventListener('click', (event) => {
 });
 
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape') foldViewer();
+  if (event.key !== 'Escape') return;
+  if (showcaseGrid.classList.contains('is-viewer-fullscreen')) {
+    closeFullscreenViewer();
+  } else {
+    foldViewer();
+  }
 });
 
-prevPageBtn.addEventListener('click', () => renderPage(currentPage - 1));
-nextPageBtn.addEventListener('click', () => renderPage(currentPage + 1));
+prevPageBtn.addEventListener('click', () => renderPage(currentPage - 1, true));
+nextPageBtn.addEventListener('click', () => renderPage(currentPage + 1, true));
 
 renderPage(0);
 
 loadHdButton.addEventListener('click', () => {
   const project = projects.find((item) => item.id === loadHdButton.dataset.project);
   if (project) getViewer().then((instance) => instance.loadProject(project, true));
+});
+
+fullscreenButton.addEventListener('click', () => {
+  if (showcaseGrid.classList.contains('is-viewer-fullscreen')) {
+    closeFullscreenViewer();
+  } else {
+    openFullscreenViewer();
+  }
+});
+
+viewerBackdrop.addEventListener('click', (event) => {
+  event.stopPropagation();
+  closeFullscreenViewer();
+});
+
+viewerClose.addEventListener('click', (event) => {
+  event.stopPropagation();
+  closeFullscreenViewer();
 });
 
 function renderCollagePage(page, shouldScroll = false) {
@@ -241,7 +305,7 @@ function renderCollagePage(page, shouldScroll = false) {
   updateParallax();
 
   if (shouldScroll) {
-    processSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollToSectionPart(collageGrid);
   }
 }
 
