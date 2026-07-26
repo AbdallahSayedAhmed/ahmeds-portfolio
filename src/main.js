@@ -1,249 +1,14 @@
 import './styles.css';
+import content from './content.json';
 
-// Every project below maps to a real .glb in /assets/models/3d.
-// `fast` = safe to auto-preload in the background. Every model still loads
-// directly on click; this only controls quiet preloading for nearby rows.
-const projects = [
-  {
-    id: 'stand',
-    index: '01',
-    title: 'Compact Display Stand',
-    type: 'Retail Display',
-    model: '/models/3d/stand.glb',
-    image: '/images/thumbnails/display-stand-primary.webp',
-    sizeMb: 0.1,
-    fast: true,
-    rotationY: 0,
-  },
-  {
-    id: 'gate',
-    index: '02',
-    title: 'Modern Exhibition Gate Stand',
-    type: 'Exhibition Gateway',
-    model: '/models/3d/Gate.glb',
-    image: '/images/thumbnails/exhibition-gate.webp',
-    sizeMb: 0.1,
-    fast: true,
-    rotationY: 0,
-  },
-  {
-    id: 'dd',
-    index: '03',
-    title: 'Display Unit DD',
-    type: 'Product Counter',
-    model: '/models/3d/dd.glb',
-    image: '/images/thumbnails/display-unit-dd.webp',
-    sizeMb: 0.3,
-    fast: true,
-    rotationY: 0,
-  },
-  {
-    id: 'trophy',
-    index: '04',
-    title: 'Trophy & Award Podium',
-    type: 'Award Display',
-    model: '/models/3d/trophy.glb',
-    image: '/images/thumbnails/brand-trophy.webp',
-    sizeMb: 0.2,
-    fast: true,
-    rotationY: 0,
-  },
-  {
-    id: 'was17',
-    index: '05',
-    title: 'WAS Series Booth 17',
-    type: '3D Booth System',
-    model: '/models/3d/was17.glb',
-    image: '/images/thumbnails/was-series-17.webp',
-    sizeMb: 1.8,
-    fast: true,
-    rotationY: 0,
-  },
-  {
-    id: 'was15',
-    index: '06',
-    title: 'WAS Series Booth 15',
-    type: '3D Booth System',
-    model: '/models/3d/was15.glb',
-    image: '/images/thumbnails/was-series-15.webp',
-    sizeMb: 0.2,
-    fast: true,
-    rotationY: 0,
-  },
-  {
-    id: 'podium',
-    index: '07',
-    title: 'Customer Interaction Podium',
-    type: 'Brand Activation',
-    model: '/models/3d/Poduom.glb',
-    image: '/images/thumbnails/brand-podium.webp',
-    sizeMb: 0.3,
-    fast: true,
-    rotationY: 0,
-  },
-  {
-    id: 'bank',
-    index: '08',
-    title: 'Housing Bank Exhibition Stand',
-    type: 'Large Booth Build',
-    model: '/models/3d/bank.glb',
-    image: '/images/thumbnails/housing-bank-booth.webp',
-    sizeMb: 6.2,
-    fast: false,
-    rotationY: 0,
-  },
-  {
-    id: 'booth',
-    index: '09',
-    title: 'Exhibition Counter Unit',
-    type: 'Product Counter',
-    model: '/models/3d/Booth.glb',
-    image: '/images/thumbnails/housing-bank-counter.webp',
-    sizeMb: 1,
-    fast: false,
-    rotationY: 0,
-  },
-  {
-    id: 'stande',
-    index: '10',
-    title: 'Extended Display Stand',
-    type: 'Retail Display',
-    model: '/models/3d/stande.glb',
-    image: '/images/thumbnails/display-stand-extended.webp',
-    sizeMb: 0.3,
-    fast: false,
-    rotationY: 0,
-  },
-  {
-    id: 'booth11',
-    index: '11',
-    title: 'Exhibition Booth 11',
-    type: '3D Booth System',
-    model: '/models/3d/Booth11.glb',
-    image: '/images/thumbnails/exhibition-booth-11.webp',
-    sizeMb: 3.6,
-    fast: false,
-    rotationY: 0,
-  },
-  {
-    id: 'was16',
-    index: '12',
-    title: 'WAS Series Booth 16',
-    type: '3D Booth System',
-    model: '/models/3d/was16.glb',
-    image: '/images/thumbnails/was-series-16.webp',
-    sizeMb: 2.7,
-    fast: false,
-    rotationY: 0,
-  },
-  {
-    id: 'was14',
-    index: '13',
-    title: 'WAS Series Booth 14',
-    type: '3D Booth System',
-    model: '/models/3d/was14.glb',
-    image: '/images/thumbnails/was-series-14.webp',
-    sizeMb: 4.5,
-    fast: false,
-    rotationY: 0,
-  },
-  {
-    id: 'registration',
-    index: '14',
-    title: 'Registration Gate Stand',
-    type: 'Entry Gateway',
-    model: '/models/3d/Registration.glb',
-    image: '/images/thumbnails/registration-gate.webp',
-    sizeMb: 4,
-    fast: false,
-    rotationY: 0,
-  },
-  {
-    id: 'booth12',
-    index: '15',
-    title: 'Exhibition Booth 12',
-    type: '3D Booth System',
-    model: '/models/3d/Booth12.glb',
-    image: '/images/thumbnails/exhibition-booth-12.webp',
-    sizeMb: 4.3,
-    fast: false,
-    rotationY: 0,
-  },
-  {
-    id: 'booth14',
-    index: '16',
-    title: 'Exhibition Booth 14',
-    type: '3D Booth System',
-    model: '/models/3d/Booth14.glb',
-    image: '/images/thumbnails/exhibition-booth-14.webp',
-    sizeMb: 4.9,
-    fast: false,
-    rotationY: 0,
-  },
-  {
-    id: 'booth13',
-    index: '17',
-    title: 'Exhibition Booth 13',
-    type: '3D Booth System',
-    model: '/models/3d/Booth13.glb',
-    image: '/images/thumbnails/exhibition-booth-13.webp',
-    sizeMb: 8.1,
-    fast: false,
-    rotationY: 0,
-  },
-  {
-    id: 'bank2',
-    index: '18',
-    title: 'Housing Bank Booth V2',
-    type: 'Large Booth Build',
-    model: '/models/3d/Bank2.glb',
-    image: '/images/thumbnails/bank-booth-v2.webp',
-    sizeMb: 6.8,
-    fast: false,
-    rotationY: 0,
-  },
-  {
-    id: 'concept3',
-    index: '19',
-    title: 'Exhibition Concept 03',
-    type: 'Concept Design',
-    model: '/models/3d/3.glb',
-    image: '/images/thumbnails/exhibition-concept-3.webp',
-    sizeMb: 9.6,
-    fast: false,
-    rotationY: 0,
-  },
-  {
-    id: 'floor',
-    index: '20',
-    title: 'Full Floor Plan Layout',
-    type: 'Large Venue Plan',
-    model: '/models/3d/plan-1.glb',
-    image: '/images/thumbnails/floor-plan-layout.webp',
-    sizeMb: 24.6,
-    fast: false,
-    rotationY: 0,
-  },
-];
-
-// Small, already-optimized webp thumbnails only -- never raw /images/3d/*.png
-// (those source renders run 5-60MB each and previously loaded straight into
-// the collage, which was the main cause of slow image loading on the site).
-const collageImages = [
-  '/images/thumbnails/housing-bank-booth.webp',
-  '/images/thumbnails/exhibition-booth-14.webp',
-  '/images/thumbnails/registration-gate.webp',
-  '/images/thumbnails/on-ground-showcase.webp',
-  '/images/on-ground/IMG20250325042304.webp',
-  '/images/on-ground/IMG20240523152015.webp',
-  '/images/on-ground/IMG20250928155518.webp',
-  '/images/thumbnails/exhibition-booth-11.webp',
-  '/images/thumbnails/exhibition-gate.webp',
-];
+const { projects, collageImages } = content;
 
 const PAGE_SIZE = 8;
 const TOTAL_PAGES = Math.ceil(projects.length / PAGE_SIZE);
+const COLLAGE_PAGE_SIZE = 9;
+const TOTAL_COLLAGE_PAGES = Math.ceil(collageImages.length / COLLAGE_PAGE_SIZE);
 let currentPage = 0;
+let currentCollagePage = 0;
 
 const app = document.querySelector('#app');
 
@@ -315,16 +80,11 @@ app.innerHTML = `
         <p class="eyebrow">Built On Ground</p>
         <h2 id="process-title">Concept, booth, print, production, installation.</h2>
       </div>
-      <div class="collage-grid">
-        ${collageImages
-          .map(
-            (src, i) => `
-              <figure class="collage-item depth-${(i % 3) + 1}">
-                <img src="${src}" alt="Ahmed Basha project visual ${i + 1}" loading="${i < 3 ? 'eager' : 'lazy'}" decoding="async" />
-              </figure>
-            `,
-          )
-          .join('')}
+      <div class="collage-grid" id="collageGrid"></div>
+      <div class="pagination collage-pagination" aria-label="On-ground image pages">
+        <button class="page-arrow" id="prevCollagePage" type="button" aria-label="Previous image page">&larr;</button>
+        <span class="page-label" id="collagePageLabel"></span>
+        <button class="page-arrow" id="nextCollagePage" type="button" aria-label="Next image page">&rarr;</button>
       </div>
     </section>
 
@@ -370,7 +130,13 @@ const activeTitle = document.querySelector('#activeTitle');
 const modelPoster = document.querySelector('#modelPoster');
 const loaderState = document.querySelector('#loaderState');
 const loadHdButton = document.querySelector('#loadHdButton');
+const processSection = document.querySelector('#process');
+const collageGrid = document.querySelector('#collageGrid');
+const prevCollagePageBtn = document.querySelector('#prevCollagePage');
+const nextCollagePageBtn = document.querySelector('#nextCollagePage');
+const collagePageLabel = document.querySelector('#collagePageLabel');
 let viewer;
+let collageItems = [];
 
 async function getViewer() {
   if (viewer) return viewer;
@@ -453,7 +219,35 @@ loadHdButton.addEventListener('click', () => {
   if (project) getViewer().then((instance) => instance.loadProject(project, true));
 });
 
-const collageItems = [...document.querySelectorAll('.collage-item')];
+function renderCollagePage(page, shouldScroll = false) {
+  currentCollagePage = Math.min(Math.max(page, 0), TOTAL_COLLAGE_PAGES - 1);
+  const start = currentCollagePage * COLLAGE_PAGE_SIZE;
+  const pageImages = collageImages.slice(start, start + COLLAGE_PAGE_SIZE);
+
+  collageGrid.innerHTML = pageImages
+    .map(
+      (src, imageIndex) => `
+        <figure class="collage-item depth-${(imageIndex % 3) + 1}">
+          <img src="${src}" alt="Ahmed Basha project visual ${start + imageIndex + 1}" loading="${imageIndex < 3 ? 'eager' : 'lazy'}" decoding="async" />
+        </figure>
+      `,
+    )
+    .join('');
+
+  collageItems = [...collageGrid.querySelectorAll('.collage-item')];
+  collagePageLabel.textContent = `Page ${currentCollagePage + 1} of ${TOTAL_COLLAGE_PAGES}`;
+  prevCollagePageBtn.disabled = currentCollagePage === 0;
+  nextCollagePageBtn.disabled = currentCollagePage === TOTAL_COLLAGE_PAGES - 1;
+  updateParallax();
+
+  if (shouldScroll) {
+    processSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+prevCollagePageBtn.addEventListener('click', () => renderCollagePage(currentCollagePage - 1, true));
+nextCollagePageBtn.addEventListener('click', () => renderCollagePage(currentCollagePage + 1, true));
+
 let ticking = false;
 function updateParallax() {
   ticking = false;
@@ -475,7 +269,7 @@ window.addEventListener(
   },
   { passive: true },
 );
-updateParallax();
+renderCollagePage(0);
 
 const observer = new IntersectionObserver(
   (entries) => {

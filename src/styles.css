@@ -481,6 +481,25 @@ h1 {
   gap: clamp(10px, 2vw, 20px);
 }
 
+.collage-pagination {
+  margin-top: clamp(22px, 4vw, 42px);
+}
+
+.collage-pagination .page-arrow {
+  border-color: #000000;
+  color: #000000;
+}
+
+.collage-pagination .page-arrow:hover:not(:disabled),
+.collage-pagination .page-arrow:focus-visible:not(:disabled) {
+  background: #000000;
+  color: #ffffff;
+}
+
+.collage-pagination .page-label {
+  color: #000000;
+}
+
 .collage-item {
   margin: 0;
   overflow: hidden;
